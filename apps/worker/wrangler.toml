@@ -1,0 +1,12 @@
+name = "yt-harness"
+main = "src/index.ts"
+compatibility_date = "2025-01-10"
+compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "yt-harness"
+database_id = "yt-harness-db"
+
+[triggers]
+crons = ["*/5 * * * *"]

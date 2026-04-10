@@ -1,0 +1,12 @@
+export { ChannelsResource } from "./channels.js";
+export { VideosResource, type ListVideosOptions } from "./videos.js";
+export { CommentsResource, type ListCommentsOptions } from "./comments.js";
+export { GatesResource } from "./gates.js";
+export { SubscribersResource, type ListSubscribersOptions } from "./subscribers.js";
+export { SequencesResource } from "./sequences.js";
+export { PlaylistsResource } from "./playlists.js";
+export { AnalyticsResource } from "./analytics.js";
+export { QuotaResource } from "./quota.js";
+export { TagsResource } from "./tags.js";
+export { StaffResource } from "./staff.js";
+export { CampaignsResource } from "./campaigns.js";

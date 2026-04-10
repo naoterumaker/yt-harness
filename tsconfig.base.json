@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "lib": ["ESNext"],
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "outDir": "dist",
+    "rootDir": "src",
+    "baseUrl": ".",
+    "paths": {
+      "@yt-harness/db": ["packages/db/src"],
+      "@yt-harness/shared": ["packages/shared/src"],
+      "@yt-harness/yt-sdk": ["packages/yt-sdk/src"],
+      "@yt-harness/mcp": ["packages/mcp/src"],
+      "@yt-harness/sdk": ["packages/sdk/src"]
+    }
+  }
+}

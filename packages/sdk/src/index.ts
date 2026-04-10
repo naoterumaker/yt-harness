@@ -1,0 +1,47 @@
+export { YTHarness, type YTHarnessConfig } from "./client.js";
+export { HttpClient, HarnessApiError } from "./http/client.js";
+export {
+  ChannelsResource,
+  VideosResource,
+  CommentsResource,
+  GatesResource,
+  SubscribersResource,
+  SequencesResource,
+  PlaylistsResource,
+  AnalyticsResource,
+  QuotaResource,
+  TagsResource,
+  StaffResource,
+  CampaignsResource,
+  type ListVideosOptions,
+  type ListCommentsOptions,
+  type ListSubscribersOptions,
+} from "./resources/index.js";
+
+// Re-export all shared types
+export type {
+  YtChannel,
+  Video,
+  VideoStatus,
+  Comment,
+  CommentGate,
+  CommentGateDelivery,
+  GateTrigger,
+  GateAction,
+  DeliveryStatus,
+  Subscriber,
+  SubscriberSnapshot,
+  CommentSequence,
+  SequenceMessage,
+  SequenceEnrollment,
+  SequenceEnrollmentStatus,
+  Playlist,
+  QuotaUsage,
+  Tag,
+  SubscriberTag,
+  StaffMember,
+  StaffRole,
+  Setting,
+  Campaign,
+  CampaignStatus,
+} from "@yt-harness/shared";

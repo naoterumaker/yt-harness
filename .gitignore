@@ -1,0 +1,19 @@
+node_modules
+dist
+.wrangler
+.dev.vars
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+.turbo
+.next
+out
+build
+*.tsbuildinfo
+CLAUDE.md
+Auto Run Docs/
+maestro/LOOP_*
+maestro/Runs/
+pnpm-lock.yaml

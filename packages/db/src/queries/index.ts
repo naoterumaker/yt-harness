@@ -1,0 +1,12 @@
+export * as channels from "./channels.js";
+export * as videos from "./videos.js";
+export * as comments from "./comments.js";
+export * as commentGates from "./comment-gates.js";
+export * as subscribers from "./subscribers.js";
+export * as commentSequences from "./comment-sequences.js";
+export * as playlists from "./playlists.js";
+export * as quotaUsage from "./quota-usage.js";
+export * as tags from "./tags.js";
+export * as staff from "./staff.js";
+export * as settings from "./settings.js";
+export * as campaigns from "./campaigns.js";

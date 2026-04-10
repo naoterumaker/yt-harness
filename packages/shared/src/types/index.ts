@@ -1,0 +1,12 @@
+export type { YtChannel } from "./channel.js";
+export type { Video, VideoStatus } from "./video.js";
+export type { Comment } from "./comment.js";
+export type { CommentGate, CommentGateDelivery, GateTrigger, GateAction, DeliveryStatus } from "./comment-gate.js";
+export type { Subscriber, SubscriberSnapshot } from "./subscriber.js";
+export type { CommentSequence, SequenceMessage, SequenceEnrollment, SequenceEnrollmentStatus } from "./comment-sequence.js";
+export type { Playlist } from "./playlist.js";
+export type { QuotaUsage } from "./quota-usage.js";
+export type { Tag, SubscriberTag } from "./tag.js";
+export type { StaffMember, StaffRole } from "./staff.js";
+export type { Setting } from "./setting.js";
+export type { Campaign, CampaignStatus } from "./campaign.js";
