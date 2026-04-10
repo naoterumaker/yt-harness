@@ -8,32 +8,32 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Settings</h1>
+      <h1 className="text-2xl font-bold">設定</h1>
 
       <div className="max-w-xl space-y-6">
         <div className="rounded-lg bg-gray-800 p-5">
-          <h3 className="mb-4 font-medium text-gray-200">Channel Information</h3>
+          <h3 className="mb-4 font-medium text-gray-200">チャンネル情報</h3>
           <div className="space-y-3 text-sm">
             <div className="flex justify-between">
-              <span className="text-gray-400">Channel Name</span>
-              <span className="text-gray-200">My Channel</span>
+              <span className="text-gray-400">チャンネル名</span>
+              <span className="text-gray-200">メインチャンネル</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-400">Channel ID</span>
+              <span className="text-gray-400">チャンネルID</span>
               <span className="font-mono text-gray-200">UC1234567890abcdef</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-400">Subscribers</span>
+              <span className="text-gray-400">登録者数</span>
               <span className="text-gray-200">24,500</span>
             </div>
           </div>
         </div>
 
         <div className="rounded-lg bg-gray-800 p-5">
-          <h3 className="mb-4 font-medium text-gray-200">API Configuration</h3>
+          <h3 className="mb-4 font-medium text-gray-200">API設定</h3>
           <div className="space-y-3">
             <div>
-              <label className="mb-1.5 block text-sm text-gray-400">API Key</label>
+              <label className="mb-1.5 block text-sm text-gray-400">APIキー</label>
               <div className="flex gap-2">
                 <input
                   type="password"
@@ -41,7 +41,7 @@ export default function SettingsPage() {
                   readOnly
                   className="flex-1 rounded-md border border-gray-700 bg-gray-900 px-3 py-2 text-sm text-gray-200 focus:outline-none"
                 />
-                <Button variant="secondary">Reveal</Button>
+                <Button variant="secondary">表示</Button>
               </div>
             </div>
             <div>
@@ -56,10 +56,10 @@ export default function SettingsPage() {
         </div>
 
         <div className="rounded-lg bg-gray-800 p-5">
-          <h3 className="mb-4 font-medium text-gray-200">Quota Alerts</h3>
+          <h3 className="mb-4 font-medium text-gray-200">クォータアラート</h3>
           <div>
             <label className="mb-1.5 block text-sm text-gray-400">
-              Alert when quota reaches: {threshold}%
+              アラート閾値: {threshold}%
             </label>
             <input
               type="range"
@@ -77,7 +77,7 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        <Button>Save Settings</Button>
+        <Button>設定を保存</Button>
       </div>
     </div>
   );

@@ -22,7 +22,7 @@ export function QuotaGauge({ used, limit }: QuotaGaugeProps) {
         />
       </div>
       <span className="text-xs text-gray-400">
-        {used.toLocaleString()} / {limit.toLocaleString()}
+        {used.toLocaleString()} / {limit.toLocaleString()} ユニット
       </span>
     </div>
   );

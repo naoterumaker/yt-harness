@@ -2,24 +2,24 @@ import { Table } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 
 const comments = [
-  { text: 'Great video! Learned a lot about automation.', author: '@techfan99', video: 'How to Build a YouTube Bot', status: 'approved' },
-  { text: 'Can you do a tutorial on playlists?', author: '@creator_joe', video: 'Comment Gate Tutorial', status: 'approved' },
-  { text: 'This changed my workflow completely!', author: '@automate_it', video: 'Playlist Automation', status: 'approved' },
-  { text: 'Check out my channel for more!', author: '@spammer42', video: 'YouTube API Deep Dive', status: 'spam' },
-  { text: 'Please make a part 2!', author: '@learner_dev', video: 'How to Build a YouTube Bot', status: 'pending' },
-  { text: 'Subscribed! Keep it up.', author: '@new_sub_01', video: 'Channel Analytics 101', status: 'pending' },
-  { text: 'What language is this in?', author: '@curious_coder', video: 'YouTube API Deep Dive', status: 'approved' },
-  { text: 'I got an error at 3:42, any fix?', author: '@debug_hero', video: 'Comment Gate Tutorial', status: 'pending' },
+  { text: '素晴らしい動画！自動化について勉強になりました。', author: '@techfan99', video: 'YouTube Bot の作り方', status: 'approved' },
+  { text: 'プレイリストのチュートリアルもお願いします！', author: '@creator_joe', video: 'コメントゲート チュートリアル', status: 'approved' },
+  { text: 'ワークフローが完全に変わりました！', author: '@automate_it', video: 'プレイリスト自動化', status: 'approved' },
+  { text: '私のチャンネルも見てください！', author: '@spammer42', video: 'YouTube API 詳細解説', status: 'spam' },
+  { text: 'パート2をお願いします！', author: '@learner_dev', video: 'YouTube Bot の作り方', status: 'pending' },
+  { text: '登録しました！頑張ってください。', author: '@new_sub_01', video: 'チャンネル分析入門', status: 'pending' },
+  { text: 'これは何の言語ですか？', author: '@curious_coder', video: 'YouTube API 詳細解説', status: 'approved' },
+  { text: '3:42でエラーが出ました、修正方法はありますか？', author: '@debug_hero', video: 'コメントゲート チュートリアル', status: 'pending' },
 ];
 
 export default function CommentsPage() {
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Comments</h1>
+      <h1 className="text-2xl font-bold">コメント</h1>
 
       <div className="rounded-lg bg-gray-800">
         <Table
-          headers={['Comment', 'Video', 'Author', 'Status']}
+          headers={['コメント', '動画', '投稿者', 'ステータス']}
           rows={comments.map((c) => [
             <span key="t" className="line-clamp-1 max-w-xs">{c.text}</span>,
             c.video,
@@ -34,7 +34,7 @@ export default function CommentsPage() {
                     : 'warning'
               }
             >
-              {c.status}
+              {c.status === 'approved' ? '承認済み' : c.status === 'spam' ? 'スパム' : '保留中'}
             </Badge>,
           ])}
         />

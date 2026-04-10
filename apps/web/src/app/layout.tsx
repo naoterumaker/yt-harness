@@ -8,7 +8,7 @@ const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'YouTube Harness',
-  description: 'YouTube channel management and analytics platform',
+  description: 'YouTubeチャンネル管理・分析プラットフォーム',
 };
 
 export default function RootLayout({
@@ -17,7 +17,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="ja" className="dark">
       <body className={`${inter.className} bg-gray-900 text-gray-100`}>
         <div className="flex h-screen">
           <Sidebar />

@@ -5,15 +5,15 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 
 const navItems = [
-  { href: '/dashboard', label: 'Dashboard' },
-  { href: '/videos', label: 'Videos' },
-  { href: '/comments', label: 'Comments' },
-  { href: '/gates', label: 'Gates' },
-  { href: '/subscribers', label: 'Subscribers' },
-  { href: '/sequences', label: 'Sequences' },
-  { href: '/playlists', label: 'Playlists' },
-  { href: '/analytics', label: 'Analytics' },
-  { href: '/settings', label: 'Settings' },
+  { href: '/dashboard', label: 'ダッシュボード' },
+  { href: '/videos', label: '動画' },
+  { href: '/comments', label: 'コメント' },
+  { href: '/gates', label: 'コメントゲート' },
+  { href: '/subscribers', label: '登録者' },
+  { href: '/sequences', label: 'シーケンス' },
+  { href: '/playlists', label: 'プレイリスト' },
+  { href: '/analytics', label: '分析' },
+  { href: '/settings', label: '設定' },
 ];
 
 export function Sidebar() {
