@@ -1,5 +1,4 @@
 import type { Context, Next } from "hono";
-import { settings } from "@yt-harness/db";
 import { AuthError } from "../errors/index.js";
 
 export async function authMiddleware(c: Context<{ Bindings: Env }>, next: Next) {
@@ -9,9 +8,8 @@ export async function authMiddleware(c: Context<{ Bindings: Env }>, next: Next) 
   }
 
   const token = header.slice(7);
-  const apiKey = await settings.getSetting(c.env.DB, "API_KEY");
 
-  if (!apiKey || token !== apiKey) {
+  if (!c.env.API_KEY || token !== c.env.API_KEY) {
     throw new AuthError("Invalid API key");
   }
 
@@ -24,4 +22,5 @@ export interface Env {
   GOOGLE_CLIENT_SECRET: string;
   GOOGLE_REDIRECT_URI: string;
   ENCRYPTION_KEY: string;
+  API_KEY: string;
 }
