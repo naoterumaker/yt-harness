@@ -13,6 +13,7 @@ const route = new Hono<{ Bindings: Env }>();
 
 // GET /api/auth/url — Generate OAuth URL
 route.get("/url", (c) => {
+  const adminUrl = c.req.query("redirect") || "http://localhost:3000";
   const params = new URLSearchParams({
     client_id: c.env.GOOGLE_CLIENT_ID,
     redirect_uri: c.env.GOOGLE_REDIRECT_URI,
@@ -20,6 +21,7 @@ route.get("/url", (c) => {
     scope: SCOPES,
     access_type: "offline",
     prompt: "consent",
+    state: adminUrl,
   });
 
   return c.json({
@@ -95,7 +97,9 @@ route.get("/callback", async (c) => {
     quota_alert_threshold: 500,
   });
 
-  return c.json({ channel });
+  // Admin UI にリダイレクト（クエリパラメータで成功を通知）
+  const adminUrl = c.req.query("state") || "http://localhost:3000";
+  return c.redirect(`${adminUrl}/settings?added=${item.snippet.title}`);
 });
 
 // POST /api/auth/refresh — Manual token refresh

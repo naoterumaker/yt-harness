@@ -6,11 +6,18 @@ import { useChannel } from '@/lib/channel-context';
 import { apiFetch } from '@/lib/api';
 
 export default function SettingsPage() {
-  const { selected, loading: chLoading, error: chError, refresh } = useChannel();
+  const { channels, selected, loading: chLoading, error: chError, refresh } = useChannel();
   const [threshold, setThreshold] = useState(80);
   const [quotaLimit, setQuotaLimit] = useState(10000);
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState<string | null>(null);
+  const [authUrl, setAuthUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    apiFetch('/api/auth/url')
+      .then((data) => setAuthUrl((data as { url: string }).url))
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (selected) {
@@ -40,6 +47,17 @@ export default function SettingsPage() {
     }
   };
 
+  // OAuth callback から戻ってきた場合
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const added = params.get('added');
+    if (added) {
+      setSaveMsg(`「${added}」を追加しました`);
+      refresh();
+      window.history.replaceState({}, '', '/settings');
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   if (chLoading) {
     return <div className="flex items-center justify-center py-20 text-gray-400">読み込み中...</div>;
   }
@@ -55,8 +73,51 @@ export default function SettingsPage() {
       <h1 className="text-2xl font-bold">設定</h1>
 
       <div className="max-w-xl space-y-6">
+        {/* 登録済みチャンネル一覧 */}
         <div className="rounded-lg bg-gray-800 p-5">
-          <h3 className="mb-4 font-medium text-gray-200">チャンネル情報</h3>
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="font-medium text-gray-200">登録済みチャンネル ({channels.length})</h3>
+            {authUrl && (
+              <a
+                href={authUrl}
+                className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors"
+              >
+                + チャンネル追加
+              </a>
+            )}
+          </div>
+          <div className="space-y-3">
+            {channels.map((ch) => (
+              <div
+                key={ch.id}
+                className={`flex items-center gap-3 rounded-lg border p-3 ${
+                  ch.id === selected?.id
+                    ? 'border-blue-500 bg-blue-900/20'
+                    : 'border-gray-700 bg-gray-900'
+                }`}
+              >
+                {ch.channel_thumbnail && (
+                  <img
+                    src={ch.channel_thumbnail}
+                    alt={ch.channel_title}
+                    className="h-10 w-10 rounded-full"
+                  />
+                )}
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium text-gray-200 truncate">{ch.channel_title}</div>
+                  <div className="text-xs text-gray-500 font-mono">{ch.channel_id}</div>
+                </div>
+                {ch.id === selected?.id && (
+                  <span className="text-xs text-blue-400">選択中</span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* 選択中のチャンネル情報 */}
+        <div className="rounded-lg bg-gray-800 p-5">
+          <h3 className="mb-4 font-medium text-gray-200">チャンネル詳細</h3>
           <div className="space-y-3 text-sm">
             <div className="flex justify-between">
               <span className="text-gray-400">チャンネル名</span>
