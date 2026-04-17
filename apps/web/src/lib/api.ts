@@ -5,6 +5,15 @@ interface FetchOptions extends RequestInit {
   params?: Record<string, string>;
 }
 
+export class ApiError extends Error {
+  status: number;
+  constructor(status: number, message: string) {
+    super(message);
+    this.status = status;
+    this.name = 'ApiError';
+  }
+}
+
 export async function apiFetch<T = unknown>(
   path: string,
   options: FetchOptions = {},
@@ -26,8 +35,119 @@ export async function apiFetch<T = unknown>(
   const res = await fetch(url, { ...init, headers });
 
   if (!res.ok) {
-    throw new Error(`API ${res.status}: ${res.statusText}`);
+    throw new ApiError(res.status, `API ${res.status}: ${res.statusText}`);
   }
 
   return res.json() as Promise<T>;
+}
+
+// ---------- typed helpers ----------
+
+export interface Channel {
+  id: number;
+  channel_id: string;
+  channel_title: string;
+  channel_thumbnail: string | null;
+  daily_quota_limit: number;
+  quota_alert_threshold: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Video {
+  id: number;
+  channel_id: string;
+  video_id: string;
+  title: string;
+  description: string | null;
+  status: string;
+  published_at: string | null;
+  scheduled_at: string | null;
+  thumbnail_url: string | null;
+  view_count: number;
+  like_count: number;
+  comment_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Comment {
+  id: number;
+  video_id: string;
+  comment_id: string;
+  parent_comment_id: string | null;
+  author_channel_id: string;
+  author_display_name: string;
+  text: string;
+  like_count: number;
+  is_pinned: boolean;
+  published_at: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CommentGate {
+  id: number;
+  channel_id: string;
+  video_id: string;
+  name: string;
+  trigger: string;
+  trigger_keyword: string | null;
+  action: string;
+  reply_template: string | null;
+  lottery_rate: number | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Subscriber {
+  id: number;
+  channel_id: string;
+  youtube_channel_id: string;
+  display_name: string;
+  profile_image_url: string | null;
+  subscribed_at: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UsageData {
+  channel_id: string;
+  daily_limit: number;
+  daily_used: number;
+  daily_remaining: number;
+  alert_threshold: number;
+}
+
+export async function fetchChannels() {
+  return apiFetch<{ channels: Channel[] }>('/api/channels');
+}
+
+export async function fetchVideos(channelId: number) {
+  return apiFetch<{ videos: Video[] }>(`/api/channels/${channelId}/videos`);
+}
+
+export async function fetchComments(channelId: number) {
+  return apiFetch<{ comments: Comment[] }>(`/api/channels/${channelId}/comments`);
+}
+
+export async function fetchGates(channelId: number) {
+  return apiFetch<{ gates: CommentGate[] }>(`/api/channels/${channelId}/gates`);
+}
+
+export async function fetchSubscribers(channelId: number) {
+  return apiFetch<{ subscribers: Subscriber[] }>(`/api/channels/${channelId}/subscribers`);
+}
+
+export async function fetchUsage(channelId: number) {
+  return apiFetch<UsageData>(`/api/channels/${channelId}/usage`);
+}
+
+export async function fetchAnalytics(channelId: number, startDate?: string, endDate?: string) {
+  const params: Record<string, string> = {};
+  if (startDate) params.start_date = startDate;
+  if (endDate) params.end_date = endDate;
+  return apiFetch<{ analytics: unknown }>(`/api/channels/${channelId}/analytics/channel`, { params });
 }

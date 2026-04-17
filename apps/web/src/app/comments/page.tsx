@@ -1,44 +1,57 @@
+'use client';
+
+import { useMemo } from 'react';
 import { Table } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-
-const comments = [
-  { text: '素晴らしい動画！自動化について勉強になりました。', author: '@techfan99', video: 'YouTube Bot の作り方', status: 'approved' },
-  { text: 'プレイリストのチュートリアルもお願いします！', author: '@creator_joe', video: 'コメントゲート チュートリアル', status: 'approved' },
-  { text: 'ワークフローが完全に変わりました！', author: '@automate_it', video: 'プレイリスト自動化', status: 'approved' },
-  { text: '私のチャンネルも見てください！', author: '@spammer42', video: 'YouTube API 詳細解説', status: 'spam' },
-  { text: 'パート2をお願いします！', author: '@learner_dev', video: 'YouTube Bot の作り方', status: 'pending' },
-  { text: '登録しました！頑張ってください。', author: '@new_sub_01', video: 'チャンネル分析入門', status: 'pending' },
-  { text: 'これは何の言語ですか？', author: '@curious_coder', video: 'YouTube API 詳細解説', status: 'approved' },
-  { text: '3:42でエラーが出ました、修正方法はありますか？', author: '@debug_hero', video: 'コメントゲート チュートリアル', status: 'pending' },
-];
+import { useChannel } from '@/lib/channel-context';
+import { useApi } from '@/lib/use-api';
+import { fetchComments, type Comment } from '@/lib/api';
 
 export default function CommentsPage() {
+  const { selected, loading: chLoading, error: chError } = useChannel();
+
+  const fetcher = useMemo(
+    () => (selected ? () => fetchComments(selected.id) : null),
+    [selected],
+  );
+  const { data, loading, error } = useApi<{ comments: Comment[] }>(fetcher);
+
+  if (chLoading || loading) {
+    return <div className="flex items-center justify-center py-20 text-gray-400">読み込み中...</div>;
+  }
+  if (chError || error) {
+    return <div className="rounded-lg bg-red-900/30 p-4 text-red-300">{chError || error}</div>;
+  }
+  if (!selected) {
+    return <div className="text-gray-400">チャンネルが登録されていません。</div>;
+  }
+
+  const comments = data?.comments ?? [];
+
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">コメント</h1>
 
-      <div className="rounded-lg bg-gray-800">
-        <Table
-          headers={['コメント', '動画', '投稿者', 'ステータス']}
-          rows={comments.map((c) => [
-            <span key="t" className="line-clamp-1 max-w-xs">{c.text}</span>,
-            c.video,
-            c.author,
-            <Badge
-              key="s"
-              variant={
-                c.status === 'approved'
-                  ? 'success'
-                  : c.status === 'spam'
-                    ? 'danger'
-                    : 'warning'
-              }
-            >
-              {c.status === 'approved' ? '承認済み' : c.status === 'spam' ? 'スパム' : '保留中'}
-            </Badge>,
-          ])}
-        />
-      </div>
+      {comments.length === 0 ? (
+        <div className="rounded-lg bg-gray-800 p-8 text-center text-gray-500">コメントがありません</div>
+      ) : (
+        <div className="rounded-lg bg-gray-800">
+          <Table
+            headers={['コメント', '動画ID', '投稿者', 'ピン留め']}
+            rows={comments.map((c) => [
+              <span key="t" className="line-clamp-1 max-w-xs">{c.text}</span>,
+              c.video_id,
+              c.author_display_name,
+              <Badge
+                key="s"
+                variant={c.is_pinned ? 'success' : 'info'}
+              >
+                {c.is_pinned ? 'ピン留め' : '—'}
+              </Badge>,
+            ])}
+          />
+        </div>
+      )}
     </div>
   );
 }
