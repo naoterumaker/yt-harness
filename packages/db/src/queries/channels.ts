@@ -5,14 +5,14 @@ export async function getChannel(
   id: number,
 ): Promise<YtChannel | null> {
   return db
-    .prepare("SELECT * FROM channels WHERE id = ?")
+    .prepare("SELECT * FROM yt_channels WHERE id = ?")
     .bind(id)
     .first<YtChannel>();
 }
 
 export async function listChannels(db: D1Database): Promise<YtChannel[]> {
   const { results } = await db
-    .prepare("SELECT * FROM channels ORDER BY created_at DESC")
+    .prepare("SELECT * FROM yt_channels ORDER BY created_at DESC")
     .all<YtChannel>();
   return results;
 }
@@ -23,7 +23,7 @@ export async function upsertChannel(
 ): Promise<YtChannel | null> {
   return db
     .prepare(
-      `INSERT INTO channels (channel_id, channel_title, channel_thumbnail, access_token, refresh_token, token_expires_at, daily_quota_limit, quota_alert_threshold)
+      `INSERT INTO yt_channels (channel_id, channel_title, channel_thumbnail, access_token, refresh_token, token_expires_at, daily_quota_limit, quota_alert_threshold)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
        ON CONFLICT (channel_id) DO UPDATE SET
          channel_title = excluded.channel_title,
@@ -56,7 +56,7 @@ export async function updateTokens(
 ): Promise<YtChannel | null> {
   return db
     .prepare(
-      `UPDATE channels SET access_token = ?, refresh_token = ?, token_expires_at = ?, updated_at = datetime('now')
+      `UPDATE yt_channels SET access_token = ?, refresh_token = ?, token_expires_at = ?, updated_at = datetime('now')
        WHERE id = ? RETURNING *`,
     )
     .bind(tokens.access_token, tokens.refresh_token, tokens.token_expires_at, id)
@@ -68,7 +68,7 @@ export async function deleteChannel(
   id: number,
 ): Promise<boolean> {
   const result = await db
-    .prepare("DELETE FROM channels WHERE id = ?")
+    .prepare("DELETE FROM yt_channels WHERE id = ?")
     .bind(id)
     .run();
   return result.meta.changes > 0;
