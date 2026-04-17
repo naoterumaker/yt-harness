@@ -1,9 +1,80 @@
 import { Hono } from "hono";
-import { comments } from "@yt-harness/db";
+import { comments, videos } from "@yt-harness/db";
 import { NotFoundError, ValidationError } from "../errors/index.js";
 import type { Env } from "../middleware/auth.js";
 
 const route = new Hono<{ Bindings: Env }>();
+
+// POST /api/channels/:channelId/comments/sync — Sync comments from YouTube API
+route.post("/sync", async (c) => {
+  const channel = c.get("channel");
+  const videoList = await videos.listVideos(c.env.DB, channel.channel_id);
+  let synced = 0;
+
+  for (const video of videoList) {
+    try {
+      let pageToken = "";
+      do {
+        const params = new URLSearchParams({
+          part: "snippet",
+          videoId: video.video_id,
+          maxResults: "100",
+          order: "time",
+        });
+        if (pageToken) params.set("pageToken", pageToken);
+
+        const resp = await fetch(
+          `https://www.googleapis.com/youtube/v3/commentThreads?${params}`,
+          { headers: { Authorization: `Bearer ${channel.access_token}` } },
+        );
+
+        if (!resp.ok) break;
+
+        const data = (await resp.json()) as {
+          items: Array<{
+            snippet: {
+              topLevelComment: {
+                id: string;
+                snippet: {
+                  authorChannelId?: { value: string };
+                  authorDisplayName: string;
+                  textDisplay: string;
+                  likeCount: number;
+                  publishedAt: string;
+                };
+              };
+            };
+          }>;
+          nextPageToken?: string;
+        };
+
+        if (!data.items?.length) break;
+
+        for (const item of data.items) {
+          const s = item.snippet.topLevelComment.snippet;
+          await comments.upsertComment(c.env.DB, {
+            video_id: video.video_id,
+            comment_id: item.snippet.topLevelComment.id,
+            parent_comment_id: null,
+            author_channel_id: s.authorChannelId?.value ?? "",
+            author_display_name: s.authorDisplayName,
+            text: s.textDisplay,
+            like_count: s.likeCount,
+            is_pinned: false,
+            published_at: s.publishedAt,
+          });
+          synced++;
+        }
+
+        pageToken = data.nextPageToken ?? "";
+      } while (pageToken);
+    } catch {
+      // コメント無効の動画はスキップ
+    }
+  }
+
+  return c.json({ synced, message: `${synced}件のコメントを同期しました` });
+});
 
 // GET /api/channels/:channelId/comments
 route.get("/", async (c) => {
