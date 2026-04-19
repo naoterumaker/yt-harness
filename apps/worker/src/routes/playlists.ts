@@ -12,6 +12,53 @@ route.get("/", async (c) => {
   return c.json({ playlists: list });
 });
 
+// POST /api/channels/:channelId/playlists/sync
+route.post("/sync", async (c) => {
+  const channel = c.get("channel");
+  let pageToken = "";
+  let synced = 0;
+
+  do {
+    const params = new URLSearchParams({
+      part: "snippet,contentDetails",
+      channelId: channel.channel_id,
+      maxResults: "50",
+    });
+    if (pageToken) params.set("pageToken", pageToken);
+
+    const resp = await fetch(
+      `https://www.googleapis.com/youtube/v3/playlists?${params}`,
+      { headers: { Authorization: `Bearer ${channel.access_token}` } },
+    );
+
+    if (!resp.ok) break;
+
+    const data = (await resp.json()) as {
+      items: Array<{
+        id: string;
+        snippet: { title: string; description: string };
+        contentDetails: { itemCount: number };
+      }>;
+      nextPageToken?: string;
+    };
+
+    for (const item of data.items ?? []) {
+      await playlists.upsertPlaylist(c.env.DB, {
+        channel_id: channel.channel_id,
+        playlist_id: item.id,
+        title: item.snippet.title,
+        description: item.snippet.description ?? "",
+        video_count: item.contentDetails.itemCount ?? 0,
+      });
+      synced++;
+    }
+
+    pageToken = data.nextPageToken ?? "";
+  } while (pageToken);
+
+  return c.json({ synced, message: `${synced}件のプレイリストを同期しました` });
+});
+
 // GET /api/channels/:channelId/playlists/:id
 route.get("/:id", async (c) => {
   const id = Number(c.req.param("id"));
