@@ -21,18 +21,37 @@ export async function listComments(
   return results;
 }
 
+export async function countCommentsByChannel(
+  db: D1Database,
+  channelId: string,
+): Promise<number> {
+  const row = await db
+    .prepare(
+      `SELECT COUNT(*) as cnt FROM comments c
+       JOIN videos v ON c.video_id = v.video_id
+       WHERE v.channel_id = ?`,
+    )
+    .bind(channelId)
+    .first<{ cnt: number }>();
+  return row?.cnt ?? 0;
+}
+
 export async function listCommentsByChannel(
   db: D1Database,
   channelId: string,
+  options?: { offset?: number; limit?: number },
 ): Promise<Comment[]> {
+  const limit = options?.limit ?? 50;
+  const offset = options?.offset ?? 0;
   const { results } = await db
     .prepare(
       `SELECT c.* FROM comments c
        JOIN videos v ON c.video_id = v.video_id
        WHERE v.channel_id = ?
-       ORDER BY c.published_at DESC`,
+       ORDER BY c.published_at DESC
+       LIMIT ? OFFSET ?`,
     )
-    .bind(channelId)
+    .bind(channelId, limit, offset)
     .all<Comment>();
   return results;
 }

@@ -7,8 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { QuotaGauge } from '@/components/quota-gauge';
 import { useChannel } from '@/lib/channel-context';
 import { useApi } from '@/lib/use-api';
-import { fetchVideos, fetchComments, fetchUsage, type Video, type Comment, type UsageData } from '@/lib/api';
-import { formatNumber } from '@/lib/utils';
+import { fetchVideos, fetchComments, fetchUsage, fetchAnalyticsSummary, type Video, type Comment, type UsageData, type AnalyticsSummary } from '@/lib/api';
+import { formatNumber, formatDuration, formatDelta } from '@/lib/utils';
 
 function statusLabel(s: string) {
   switch (s) {
@@ -43,10 +43,15 @@ export default function DashboardPage() {
     () => (selected ? () => fetchUsage(selected.id) : null),
     [selected],
   );
+  const summaryFetcher = useMemo(
+    () => (selected ? () => fetchAnalyticsSummary(selected.id, 7) : null),
+    [selected],
+  );
 
   const { data: videosData, loading: vLoading, error: vError } = useApi<{ videos: Video[] }>(videosFetcher);
-  const { data: commentsData, loading: cLoading, error: cError } = useApi<{ comments: Comment[] }>(commentsFetcher);
+  const { data: commentsData, loading: cLoading, error: cError } = useApi<{ comments: Comment[]; total: number }>(commentsFetcher);
   const { data: usage, loading: uLoading } = useApi<UsageData>(usageFetcher);
+  const { data: summary, loading: sLoading } = useApi<AnalyticsSummary>(summaryFetcher);
 
   if (chLoading) {
     return <div className="flex items-center justify-center py-20 text-gray-400">読み込み中...</div>;
@@ -95,6 +100,33 @@ export default function DashboardPage() {
         <Card
           title="コメント数"
           value={cLoading ? '...' : comments.length.toString()}
+        />
+        <Card
+          title="CTR（直近7日）"
+          value={sLoading ? '...' : summary ? `${(summary.ctr * 100).toFixed(1)}%` : '—'}
+          subtitle={
+            summary?.previous_ctr != null
+              ? formatDelta(summary.ctr, summary.previous_ctr)
+              : undefined
+          }
+        />
+        <Card
+          title="平均視聴時間"
+          value={sLoading ? '...' : summary ? formatDuration(summary.avg_view_duration) : '—'}
+          subtitle={
+            summary?.previous_avg_view_duration != null
+              ? formatDelta(summary.avg_view_duration, summary.previous_avg_view_duration)
+              : undefined
+          }
+        />
+        <Card
+          title="インプレッション"
+          value={sLoading ? '...' : summary ? formatNumber(summary.impressions) : '—'}
+          subtitle={
+            summary?.previous_impressions != null
+              ? formatDelta(summary.impressions, summary.previous_impressions)
+              : undefined
+          }
         />
       </div>
 

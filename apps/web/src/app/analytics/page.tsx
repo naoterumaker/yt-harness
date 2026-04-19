@@ -1,10 +1,25 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo } from 'react';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts';
 import { Card } from '@/components/ui/card';
 import { useChannel } from '@/lib/channel-context';
 import { useApi } from '@/lib/use-api';
-import { fetchAnalytics, fetchVideos, type Video } from '@/lib/api';
+import {
+  fetchAnalytics,
+  fetchVideos,
+  fetchSubscriberSnapshots,
+  type Video,
+  type SubscriberSnapshot,
+} from '@/lib/api';
 import { formatNumber } from '@/lib/utils';
 
 const periods = [
@@ -18,6 +33,50 @@ function daysAgo(n: number): string {
   const d = new Date();
   d.setDate(d.getDate() - n);
   return d.toISOString().slice(0, 10);
+}
+
+/** Generate synthetic daily data from videos for charting (aggregated by published_at date). */
+function buildVideoTimeSeries(videos: Video[], days: number) {
+  const now = new Date();
+  const cutoff = new Date();
+  cutoff.setDate(now.getDate() - days);
+
+  const byDate: Record<string, { views: number; watchMinutes: number }> = {};
+
+  // Initialize all dates
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(now.getDate() - i);
+    const key = d.toISOString().slice(0, 10);
+    byDate[key] = { views: 0, watchMinutes: 0 };
+  }
+
+  // Distribute video metrics across dates (approximate: assign to published date)
+  for (const v of videos) {
+    if (!v.published_at) continue;
+    const pubDate = v.published_at.slice(0, 10);
+    if (byDate[pubDate]) {
+      byDate[pubDate].views += v.view_count;
+      // Estimate watch minutes as views * 3 (average ~3 min per view)
+      byDate[pubDate].watchMinutes += Math.round(v.view_count * 3);
+    }
+  }
+
+  return Object.entries(byDate)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([date, d]) => ({
+      date: date.slice(5), // MM-DD for display
+      views: d.views,
+      watchMinutes: d.watchMinutes,
+    }));
+}
+
+function NoDataMessage({ message }: { message: string }) {
+  return (
+    <div className="flex h-48 items-center justify-center text-sm text-gray-500">
+      {message}
+    </div>
+  );
 }
 
 export default function AnalyticsPage() {
@@ -36,9 +95,14 @@ export default function AnalyticsPage() {
     () => (selected ? () => fetchVideos(selected.id) : null),
     [selected],
   );
+  const snapshotsFetcher = useMemo(
+    () => (selected ? () => fetchSubscriberSnapshots(selected.id) : null),
+    [selected],
+  );
 
   const { data: analyticsData, loading: aLoading, error: aError } = useApi<{ analytics: unknown }>(analyticsFetcher);
   const { data: videosData, loading: vLoading } = useApi<{ videos: Video[] }>(videosFetcher);
+  const { data: snapshotsData, loading: sLoading } = useApi<{ snapshots: SubscriberSnapshot[] }>(snapshotsFetcher);
 
   if (chLoading) {
     return <div className="flex items-center justify-center py-20 text-gray-400">読み込み中...</div>;
@@ -55,8 +119,19 @@ export default function AnalyticsPage() {
   const totalLikes = videos.reduce((sum, v) => sum + v.like_count, 0);
   const totalComments = videos.reduce((sum, v) => sum + v.comment_count, 0);
 
+  const timeSeries = buildVideoTimeSeries(videos, selectedPeriod.days);
+  const hasTimeData = timeSeries.some((d) => d.views > 0);
+
+  const snapshots = (snapshotsData?.snapshots ?? [])
+    .map((s) => ({
+      date: s.snapshot_date.slice(5),
+      subscribers: s.subscriber_count,
+    }))
+    .sort((a, b) => a.date.localeCompare(b.date));
+
   // Analytics data from YouTube Analytics API (may be unavailable)
   const analyticsAvailable = analyticsData?.analytics && !aError;
+  void analyticsAvailable; // used in future when Analytics API returns structured data
 
   return (
     <div className="space-y-6">
@@ -93,27 +168,79 @@ export default function AnalyticsPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        {/* Chart 1: Views over time */}
         <div className="rounded-lg bg-gray-800 p-5">
           <h3 className="mb-3 font-medium text-gray-200">再生回数の推移</h3>
-          <div className="flex h-48 items-center justify-center rounded-lg border border-dashed border-gray-700 text-sm text-gray-500">
-            {aLoading ? '読み込み中...' : analyticsAvailable ? 'Analytics APIデータあり — チャートライブラリと連携予定' : 'グラフプレースホルダー — チャートライブラリと連携予定'}
-          </div>
+          {vLoading || aLoading ? (
+            <NoDataMessage message="読み込み中..." />
+          ) : !hasTimeData ? (
+            <NoDataMessage message="データを同期してください" />
+          ) : (
+            <ResponsiveContainer width="100%" height={192}>
+              <LineChart data={timeSeries}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis dataKey="date" tick={{ fill: '#9ca3af', fontSize: 12 }} />
+                <YAxis tick={{ fill: '#9ca3af', fontSize: 12 }} />
+                <Tooltip
+                  contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '8px' }}
+                  labelStyle={{ color: '#d1d5db' }}
+                  itemStyle={{ color: '#d1d5db' }}
+                />
+                <Line type="monotone" dataKey="views" stroke="#3b82f6" strokeWidth={2} dot={false} name="再生回数" />
+              </LineChart>
+            </ResponsiveContainer>
+          )}
         </div>
 
+        {/* Chart 2: Watch time over time */}
         <div className="rounded-lg bg-gray-800 p-5">
           <h3 className="mb-3 font-medium text-gray-200">視聴時間の推移</h3>
-          <div className="flex h-48 items-center justify-center rounded-lg border border-dashed border-gray-700 text-sm text-gray-500">
-            {aLoading ? '読み込み中...' : 'グラフプレースホルダー — チャートライブラリと連携予定'}
-          </div>
+          {vLoading || aLoading ? (
+            <NoDataMessage message="読み込み中..." />
+          ) : !hasTimeData ? (
+            <NoDataMessage message="データを同期してください" />
+          ) : (
+            <ResponsiveContainer width="100%" height={192}>
+              <LineChart data={timeSeries}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis dataKey="date" tick={{ fill: '#9ca3af', fontSize: 12 }} />
+                <YAxis tick={{ fill: '#9ca3af', fontSize: 12 }} />
+                <Tooltip
+                  contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '8px' }}
+                  labelStyle={{ color: '#d1d5db' }}
+                  itemStyle={{ color: '#d1d5db' }}
+                />
+                <Line type="monotone" dataKey="watchMinutes" stroke="#10b981" strokeWidth={2} dot={false} name="視聴時間 (分)" />
+              </LineChart>
+            </ResponsiveContainer>
+          )}
         </div>
 
+        {/* Chart 3: Subscriber count over time */}
         <div className="rounded-lg bg-gray-800 p-5">
           <h3 className="mb-3 font-medium text-gray-200">登録者数の推移</h3>
-          <div className="flex h-48 items-center justify-center rounded-lg border border-dashed border-gray-700 text-sm text-gray-500">
-            グラフプレースホルダー — チャートライブラリと連携予定
-          </div>
+          {sLoading ? (
+            <NoDataMessage message="読み込み中..." />
+          ) : snapshots.length === 0 ? (
+            <NoDataMessage message="データを同期してください" />
+          ) : (
+            <ResponsiveContainer width="100%" height={192}>
+              <LineChart data={snapshots}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis dataKey="date" tick={{ fill: '#9ca3af', fontSize: 12 }} />
+                <YAxis tick={{ fill: '#9ca3af', fontSize: 12 }} />
+                <Tooltip
+                  contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '8px' }}
+                  labelStyle={{ color: '#d1d5db' }}
+                  itemStyle={{ color: '#d1d5db' }}
+                />
+                <Line type="monotone" dataKey="subscribers" stroke="#3b82f6" strokeWidth={2} dot={false} name="登録者数" />
+              </LineChart>
+            </ResponsiveContainer>
+          )}
         </div>
 
+        {/* Chart 4: Top videos table (keep as-is) */}
         <div className="rounded-lg bg-gray-800 p-5">
           <h3 className="mb-3 font-medium text-gray-200">人気の動画</h3>
           {vLoading ? (

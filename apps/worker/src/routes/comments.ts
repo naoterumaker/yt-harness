@@ -80,12 +80,20 @@ route.post("/sync", async (c) => {
 route.get("/", async (c) => {
   const channel = c.get("channel");
   const videoId = c.req.query("video_id");
+  const offset = Number(c.req.query("offset") ?? "0");
+  const limit = Number(c.req.query("limit") ?? "50");
 
-  const list = videoId
-    ? await comments.listComments(c.env.DB, videoId)
-    : await comments.listCommentsByChannel(c.env.DB, channel.channel_id);
+  if (videoId) {
+    const list = await comments.listComments(c.env.DB, videoId);
+    return c.json({ comments: list, total: list.length });
+  }
 
-  return c.json({ comments: list });
+  const [list, total] = await Promise.all([
+    comments.listCommentsByChannel(c.env.DB, channel.channel_id, { offset, limit }),
+    comments.countCommentsByChannel(c.env.DB, channel.channel_id),
+  ]);
+
+  return c.json({ comments: list, total });
 });
 
 // GET /api/channels/:channelId/comments/:id

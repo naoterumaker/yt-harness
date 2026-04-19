@@ -4,6 +4,7 @@ import './globals.css';
 import { Sidebar } from '@/components/sidebar';
 import { Header } from '@/components/header';
 import { ChannelProvider } from '@/lib/channel-context';
+import { ToastContainer } from '@/components/ui/toast';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -28,6 +29,7 @@ export default function RootLayout({
               <main className="flex-1 overflow-y-auto p-6">{children}</main>
             </div>
           </div>
+          <ToastContainer />
         </ChannelProvider>
       </body>
     </html>
