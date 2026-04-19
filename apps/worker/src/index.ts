@@ -22,6 +22,7 @@ import usageRoute from "./routes/usage.js";
 import tagsRoute from "./routes/tags.js";
 import staffRoute from "./routes/staff.js";
 import campaignsRoute from "./routes/campaigns.js";
+import changelogRoute from "./routes/changelog.js";
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -63,6 +64,7 @@ channelScoped.route("/analytics", analyticsRoute);
 channelScoped.route("/usage", usageRoute);
 channelScoped.route("/tags", tagsRoute);
 channelScoped.route("/campaigns", campaignsRoute);
+channelScoped.route("/changelog", changelogRoute);
 
 app.route("/api/channels/:channelId", channelScoped);
 

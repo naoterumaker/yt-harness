@@ -272,3 +272,110 @@ CREATE TABLE IF NOT EXISTS campaigns (
 
 CREATE INDEX IF NOT EXISTS idx_campaigns_channel_id ON campaigns(channel_id);
 CREATE INDEX IF NOT EXISTS idx_campaigns_status ON campaigns(status);
+
+-- 18. video_metrics_snapshots
+CREATE TABLE IF NOT EXISTS video_metrics_snapshots (
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  video_id      TEXT    NOT NULL,
+  channel_id    TEXT    NOT NULL,
+  snapshot_date TEXT    NOT NULL,
+  view_count    INTEGER NOT NULL DEFAULT 0,
+  like_count    INTEGER NOT NULL DEFAULT 0,
+  comment_count INTEGER NOT NULL DEFAULT 0,
+  created_at    TEXT    NOT NULL DEFAULT (datetime('now')),
+  updated_at    TEXT    NOT NULL DEFAULT (datetime('now')),
+  UNIQUE (video_id, snapshot_date)
+);
+CREATE INDEX IF NOT EXISTS idx_vms_channel_date ON video_metrics_snapshots(channel_id, snapshot_date);
+CREATE INDEX IF NOT EXISTS idx_vms_video_date   ON video_metrics_snapshots(video_id, snapshot_date);
+
+-- 19. analytics_daily
+CREATE TABLE IF NOT EXISTS analytics_daily (
+  id                                  INTEGER PRIMARY KEY AUTOINCREMENT,
+  channel_id                          TEXT    NOT NULL,
+  video_id                            TEXT    NOT NULL DEFAULT '__CHANNEL__',
+  analytics_date                      TEXT    NOT NULL,
+  video_thumbnail_impressions         INTEGER,
+  video_thumbnail_impressions_ctr     REAL,
+  views                               INTEGER,
+  estimated_minutes_watched           INTEGER,
+  average_view_duration               REAL,
+  average_view_percentage             REAL,
+  subscribers_gained                  INTEGER,
+  subscribers_lost                    INTEGER,
+  likes                               INTEGER,
+  comments                            INTEGER,
+  shares                              INTEGER,
+  engaged_views                       INTEGER,
+  created_at                          TEXT    NOT NULL DEFAULT (datetime('now')),
+  updated_at                          TEXT    NOT NULL DEFAULT (datetime('now')),
+  UNIQUE (channel_id, video_id, analytics_date)
+);
+CREATE INDEX IF NOT EXISTS idx_ad_channel_date ON analytics_daily(channel_id, analytics_date);
+CREATE INDEX IF NOT EXISTS idx_ad_video_date   ON analytics_daily(video_id, analytics_date);
+
+-- 20. change_log
+CREATE TABLE IF NOT EXISTS change_log (
+  id                       INTEGER PRIMARY KEY AUTOINCREMENT,
+  channel_id               TEXT    NOT NULL,
+  video_id                 TEXT    NOT NULL DEFAULT '__CHANNEL__',
+  change_type              TEXT    NOT NULL,
+  changed_at               TEXT    NOT NULL,
+  effective_analytics_date TEXT,
+  note                     TEXT,
+  before_value             TEXT,
+  after_value              TEXT,
+  impact_score             REAL,
+  created_by               TEXT    NOT NULL DEFAULT 'mcp',
+  created_at               TEXT    NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_cl_channel ON change_log(channel_id, changed_at);
+CREATE INDEX IF NOT EXISTS idx_cl_video ON change_log(video_id, changed_at);
+CREATE INDEX IF NOT EXISTS idx_cl_type ON change_log(change_type);
+CREATE INDEX IF NOT EXISTS idx_cl_analytics ON change_log(effective_analytics_date);
+
+-- 21. traffic_sources
+CREATE TABLE IF NOT EXISTS traffic_sources (
+  id              INTEGER PRIMARY KEY AUTOINCREMENT,
+  channel_id      TEXT    NOT NULL,
+  video_id        TEXT    NOT NULL DEFAULT '__CHANNEL__',
+  analytics_date  TEXT    NOT NULL,
+  traffic_type    TEXT    NOT NULL,
+  views           INTEGER DEFAULT 0,
+  estimated_minutes_watched INTEGER DEFAULT 0,
+  created_at      TEXT    NOT NULL DEFAULT (datetime('now')),
+  updated_at      TEXT    NOT NULL DEFAULT (datetime('now')),
+  UNIQUE (channel_id, video_id, analytics_date, traffic_type)
+);
+CREATE INDEX IF NOT EXISTS idx_ts_channel_date ON traffic_sources(channel_id, analytics_date);
+
+-- 22. viewer_demographics_pct
+CREATE TABLE IF NOT EXISTS viewer_demographics_pct (
+  id               INTEGER PRIMARY KEY AUTOINCREMENT,
+  channel_id       TEXT    NOT NULL,
+  video_id         TEXT    NOT NULL DEFAULT '__CHANNEL__',
+  analytics_date   TEXT    NOT NULL,
+  dimension_type   TEXT    NOT NULL,
+  dimension_value  TEXT    NOT NULL,
+  viewer_percentage REAL,
+  created_at       TEXT    NOT NULL DEFAULT (datetime('now')),
+  updated_at       TEXT    NOT NULL DEFAULT (datetime('now')),
+  UNIQUE (channel_id, video_id, analytics_date, dimension_type, dimension_value)
+);
+CREATE INDEX IF NOT EXISTS idx_vdp_channel_date ON viewer_demographics_pct(channel_id, analytics_date);
+
+-- 23. viewer_demographics_counts
+CREATE TABLE IF NOT EXISTS viewer_demographics_counts (
+  id               INTEGER PRIMARY KEY AUTOINCREMENT,
+  channel_id       TEXT    NOT NULL,
+  video_id         TEXT    NOT NULL DEFAULT '__CHANNEL__',
+  analytics_date   TEXT    NOT NULL,
+  dimension_type   TEXT    NOT NULL,
+  dimension_value  TEXT    NOT NULL,
+  views            INTEGER,
+  estimated_minutes_watched INTEGER,
+  created_at       TEXT    NOT NULL DEFAULT (datetime('now')),
+  updated_at       TEXT    NOT NULL DEFAULT (datetime('now')),
+  UNIQUE (channel_id, video_id, analytics_date, dimension_type, dimension_value)
+);
+CREATE INDEX IF NOT EXISTS idx_vdc_channel_date ON viewer_demographics_counts(channel_id, analytics_date);

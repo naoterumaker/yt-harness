@@ -10,3 +10,8 @@ export * as tags from "./tags.js";
 export * as staff from "./staff.js";
 export * as settings from "./settings.js";
 export * as campaigns from "./campaigns.js";
+export * as metricsSnapshots from "./metrics-snapshots.js";
+export * as analyticsDaily from "./analytics-daily.js";
+export * as changeLog from "./change-log.js";
+export * as trafficSources from "./traffic-sources.js";
+export * as viewerDemographics from "./viewer-demographics.js";

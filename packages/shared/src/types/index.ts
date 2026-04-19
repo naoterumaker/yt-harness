@@ -10,3 +10,8 @@ export type { Tag, SubscriberTag } from "./tag.js";
 export type { StaffMember, StaffRole } from "./staff.js";
 export type { Setting } from "./setting.js";
 export type { Campaign, CampaignStatus } from "./campaign.js";
+export type { VideoMetricsSnapshot } from "./metrics-snapshot.js";
+export type { AnalyticsDaily } from "./analytics-daily.js";
+export type { ChangeLog, ChangeType } from "./change-log.js";
+export type { TrafficSource } from "./traffic-source.js";
+export type { ViewerDemographicsPct, ViewerDemographicsCounts } from "./viewer-demographics.js";

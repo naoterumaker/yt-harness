@@ -8,6 +8,7 @@ import { gateTools } from "./gates.js";
 import { sequenceTools } from "./sequences.js";
 import { usageTools } from "./usage.js";
 import { staffTools } from "./staff.js";
+import { changelogTools } from "./changelog.js";
 
 export const allTools: ToolDefinition[] = [
   ...videoTools,
@@ -19,4 +20,5 @@ export const allTools: ToolDefinition[] = [
   ...sequenceTools,
   ...usageTools,
   ...staffTools,
+  ...changelogTools,
 ];
