@@ -5,9 +5,9 @@ import type { Env } from "../middleware/auth.js";
 const ANALYTICS_API_URL = "https://youtubeanalytics.googleapis.com/v2/reports";
 
 /** Metrics to request from the YouTube Analytics API */
+// NOTE: videoThumbnailImpressions/CTR は day dimension と組み合わせ不可（API制約）
+// Reporting API (channel_reach_basic_a1) で別途取得する必要がある
 const METRICS = [
-  "videoThumbnailImpressions",
-  "videoThumbnailImpressionsClickRate",
   "views",
   "estimatedMinutesWatched",
   "averageViewDuration",
@@ -90,17 +90,17 @@ export async function syncAnalytics(
       channel_id: channel.channel_id,
       video_id: "__CHANNEL__",
       analytics_date: String(record["analytics_date"]),
-      video_thumbnail_impressions: record["video_thumbnail_impressions"] as number | null,
-      video_thumbnail_impressions_ctr: record["video_thumbnail_impressions_ctr"] as number | null,
-      views: record["views"] as number | null,
-      estimated_minutes_watched: record["estimated_minutes_watched"] as number | null,
-      average_view_duration: record["average_view_duration"] as number | null,
+      video_thumbnail_impressions: null, // Reporting API で別途取得
+      video_thumbnail_impressions_ctr: null,
+      views: (record["views"] as number) ?? null,
+      estimated_minutes_watched: (record["estimated_minutes_watched"] as number) ?? null,
+      average_view_duration: (record["average_view_duration"] as number) ?? null,
       average_view_percentage: null,
-      subscribers_gained: record["subscribers_gained"] as number | null,
-      subscribers_lost: record["subscribers_lost"] as number | null,
-      likes: record["likes"] as number | null,
-      comments: record["comments"] as number | null,
-      shares: record["shares"] as number | null,
+      subscribers_gained: (record["subscribers_gained"] as number) ?? null,
+      subscribers_lost: (record["subscribers_lost"] as number) ?? null,
+      likes: (record["likes"] as number) ?? null,
+      comments: (record["comments"] as number) ?? null,
+      shares: (record["shares"] as number) ?? null,
       engaged_views: null,
     });
     upserted++;
